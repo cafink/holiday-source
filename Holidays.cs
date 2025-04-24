@@ -6,6 +6,13 @@ namespace Holidays
         public string name { get; set; }
     }
 
+    public class FavoriteCountry
+    {
+        public int id { get; set; }
+        public string countryCode { get; set; }
+        public string name { get; set; }
+    }
+
     public class CountryWithHolidays
     {
         public string name { get; set; }

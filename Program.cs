@@ -15,29 +15,20 @@ var app = builder.Build();
 
 app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
-app.MapGet("/", async () => {
+app.MapGet("/", async (ApplicationDbContext context) => {
 
-    string countryBaseUrl = "https://date.nager.at/api/v3/CountryInfo/";
     string holidayBaseUrl = "https://date.nager.at/api/v3/PublicHolidays/2025/";
     HttpClient client = new HttpClient();
 
-    string[] countriesOfInterest = ["US", "BW", "CA"];
+    List<FavoriteCountry> favoriteCountries = await context.FavoriteCountry.ToListAsync();
     List<CountryWithHolidays> countryList = new List<CountryWithHolidays>();
 
-    for (int i = 0; i < countriesOfInterest.Length; i++)
+    foreach (FavoriteCountry favoriteCountry in favoriteCountries)
     {
-
-        // get country name
-        HttpResponseMessage countryResponse = await client.GetAsync(countryBaseUrl + countriesOfInterest[i]);
-        string countryResponseString = await countryResponse.Content.ReadAsStringAsync();
-        CountryWithHolidays country = new CountryWithHolidays(
-            JsonSerializer.Deserialize<Dictionary<string, Object>>(
-                countryResponseString
-            )["commonName"].ToString()
-        );
+        CountryWithHolidays country = new CountryWithHolidays(favoriteCountry.name);
 
         // get list of holidays
-        HttpResponseMessage holidaysResponse = await client.GetAsync(holidayBaseUrl + countriesOfInterest[i]);
+        HttpResponseMessage holidaysResponse = await client.GetAsync(holidayBaseUrl + favoriteCountry.countryCode);
         string holidaysResponseString = await holidaysResponse.Content.ReadAsStringAsync();
         country.holidays = JsonSerializer.Deserialize<Holiday[]>(holidaysResponseString);
 
