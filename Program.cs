@@ -21,12 +21,15 @@ app.MapGet("/", async () => {
 
     for (int i = 0; i < countriesOfInterest.Length; i++)
     {
-        CountryWithHolidays country = new CountryWithHolidays("Botswana");
 
         // get country name
         HttpResponseMessage countryResponse = await client.GetAsync(countryBaseUrl + countriesOfInterest[i]);
         string countryResponseString = await countryResponse.Content.ReadAsStringAsync();
-        country.name = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Object>>(countryResponseString)["commonName"].ToString();
+        CountryWithHolidays country = new CountryWithHolidays(
+            JsonSerializer.Deserialize<Dictionary<string, Object>>(
+                countryResponseString
+            )["commonName"].ToString()
+        );
 
         // get list of holidays
         HttpResponseMessage holidaysResponse = await client.GetAsync(holidayBaseUrl + countriesOfInterest[i]);
