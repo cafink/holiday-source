@@ -1,10 +1,15 @@
 using System.Text.Json;
 using Holidays;
+using Microsoft.EntityFrameworkCore;
+using HolidaySource.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors();
 builder.Services.AddHttpClient();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connectionString));
 
 var app = builder.Build();
 

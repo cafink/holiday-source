@@ -5,6 +5,7 @@ WORKDIR /app
 COPY . .
 
 RUN dotnet tool install --global dotnet-aspnet-codegenerator
+RUN dotnet tool install --global dotnet-ef --version 8.*
 
 ENV PATH="$PATH:/root/.dotnet/tools"
 ENV DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
