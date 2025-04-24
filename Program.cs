@@ -1,15 +1,42 @@
+using System.Text.Json;
+using Holidays;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
 app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
-app.MapGet("/", () => @"[
-  { ""name"": ""United States"", ""holidays"": [""Arbor Day"", ""National Donut Day""] },
-  { ""name"": ""Botswana"", ""holidays"": [""National Fried Chicken Day"", ""April Fool's Day""] },
-  { ""name"": ""Canada"", ""holidays"": [""Flag Day"", ""Boxing Day""] }
-]");
+app.MapGet("/", async () => {
+
+    string countryBaseUrl = "https://date.nager.at/api/v3/CountryInfo/";
+    string holidayBaseUrl = "https://date.nager.at/api/v3/PublicHolidays/2025/";
+    HttpClient client = new HttpClient();
+
+    string[] countriesOfInterest = ["US", "BW", "CA"];
+    List<CountryWithHolidays> countryList = new List<CountryWithHolidays>();
+
+    for (int i = 0; i < countriesOfInterest.Length; i++)
+    {
+        CountryWithHolidays country = new CountryWithHolidays("Botswana");
+
+        // get country name
+        HttpResponseMessage countryResponse = await client.GetAsync(countryBaseUrl + countriesOfInterest[i]);
+        string countryResponseString = await countryResponse.Content.ReadAsStringAsync();
+        country.name = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Object>>(countryResponseString)["commonName"].ToString();
+
+        // get list of holidays
+        HttpResponseMessage holidaysResponse = await client.GetAsync(holidayBaseUrl + countriesOfInterest[i]);
+        string holidaysResponseString = await holidaysResponse.Content.ReadAsStringAsync();
+        country.holidays = JsonSerializer.Deserialize<Holiday[]>(holidaysResponseString);
+
+        countryList.Add(country);
+    }
+
+    return JsonSerializer.Serialize(countryList);
+});
 
 app.Run();
